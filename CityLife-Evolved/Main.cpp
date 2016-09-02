@@ -1,40 +1,50 @@
 #include "pch.h"
+#include "SDL_Managers.h"
 
-#include <iostream>
+using namespace CityLife;
 
+
+// Entry point.
 int main(int argc, char *args[]) {
-	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-		return 1;
-	}
+	const std::string ERROR_LOG = "ErrorLog.txt";
 
-	SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
-	if (win == nullptr) {
-		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
+	// Reset the log.
+	remove(ERROR_LOG.c_str());
 
-	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (ren == nullptr) {
-		SDL_DestroyWindow(win);
-		std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
+	// Initialise SDL and create a window.
+	SystemManager::Ptr system;
+	WindowManager::Ptr window;
+	RenderManager::Ptr render;
+	try {
+		system = SystemManager::Ptr(new SystemManager(SDL_INIT_VIDEO));
+		window = WindowManager::Ptr(
+			new WindowManager("Hello World!",
+					SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+					1024, 640, SDL_WINDOW_SHOWN
+				)
+			);
+		render = RenderManager::Ptr(
+			new RenderManager(*window, -1,
+					SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+				)
+			);
+	}
+	catch (SDLError& e) {
+		std::ofstream out(ERROR_LOG);
+		if (out) {
+			out << e.what();
+			out.close();
+		}
+		std::cout << e.what();
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", e.what(), NULL);
 		return 1;
 	}
 
 	//A sleepy rendering loop, wait for 3 seconds and render and present the screen each time
 	for (int i = 0; i < 3; ++i) {
-		//First clear the renderer
-		SDL_RenderClear(ren);
-		//Update the screen
-		SDL_RenderPresent(ren);
-		//Take a quick break after all that hard work
+		SDL_RenderClear(*render);
+		SDL_RenderPresent(*render);
 		SDL_Delay(1000);
 	}
-
-	SDL_DestroyRenderer(ren);
-	SDL_DestroyWindow(win);
-	SDL_Quit();
 	return 0;
 }

@@ -4,5 +4,11 @@
 
 #include <SDL.h>
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <exception>
+#include <memory>
+
 
 #endif
