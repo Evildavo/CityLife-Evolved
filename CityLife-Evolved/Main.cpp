@@ -10,24 +10,33 @@ int main(int argc, char *args[]) {
 
 	// Reset the log.
 	remove(ERROR_LOG.c_str());
-
-	// Initialise SDL and create a window.
+	
+	// Initialise.
 	SystemManager::Ptr system;
 	WindowManager::Ptr window;
-	RenderManager::Ptr render;
+	RenderManager::Ptr renderer;
+	ImageLoaderManager::Ptr imageLoader;
+	TextureManager::Ptr cellTexture;
 	try {
+		
+		// Initialise SDL systems and create a window.
 		system = SystemManager::Ptr(new SystemManager(SDL_INIT_VIDEO));
 		window = WindowManager::Ptr(
-			new WindowManager("Hello World!",
+			new WindowManager("CityLife-Evolved",
 					SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 					1024, 640, SDL_WINDOW_SHOWN
 				)
 			);
-		render = RenderManager::Ptr(
+		renderer = RenderManager::Ptr(
 			new RenderManager(*window, -1,
 					SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
 				)
 			);
+		imageLoader = ImageLoaderManager::Ptr(new ImageLoaderManager(IMG_INIT_PNG));
+
+		// Load assets.
+		ImageManager image("Assets/Cells.png");
+		cellTexture = TextureManager::Ptr(new TextureManager(*renderer, image));
 	}
 	catch (SDLError& e) {
 		std::ofstream out(ERROR_LOG);
@@ -39,12 +48,24 @@ int main(int argc, char *args[]) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", e.what(), NULL);
 		return 1;
 	}
+	
+	// Main loop.
+	bool quit = false;
+	SDL_Event event;
+	while (!quit) {
 
-	//A sleepy rendering loop, wait for 3 seconds and render and present the screen each time
-	for (int i = 0; i < 3; ++i) {
-		SDL_RenderClear(*render);
-		SDL_RenderPresent(*render);
-		SDL_Delay(1000);
+		// Handle events.
+		SDL_WaitEvent(&event);
+		switch (event.type) {
+		case SDL_QUIT:
+			quit = true;
+			break;
+		}
+
+		// Draw scene.
+		SDL_RenderClear(*renderer);
+		SDL_RenderCopy(*renderer, *cellTexture, NULL, NULL);
+		SDL_RenderPresent(*renderer);
 	}
 	return 0;
 }
