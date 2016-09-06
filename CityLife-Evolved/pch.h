@@ -10,6 +10,7 @@
 #include <fstream>
 #include <exception>
 #include <memory>
+#include <vector>
 
 
 #endif

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Managers.h"
+#include "TileMap.h"
 
 using namespace CityLife;
 
@@ -48,7 +49,17 @@ int main(int argc, char *args[]) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", e.what(), NULL);
 		return 1;
 	}
-	
+
+	// Set up game objects.
+	TileMap tileMap(*cellTexture, 16, 16, 20, 12);
+	TileMap::Index houseTile = tileMap.getIndex(0, 1);
+	TileMap::Index roadTile = tileMap.getIndex(1, 2);
+	tileMap.setTile(0, 0, houseTile);
+	tileMap.setTile(10, 10, houseTile);
+	tileMap.setTile(6, 5, roadTile);
+	tileMap.setTile(7, 5, roadTile);
+	tileMap.setTile(8, 5, roadTile);
+
 	// Main loop.
 	bool quit = false;
 	SDL_Event event;
@@ -64,7 +75,7 @@ int main(int argc, char *args[]) {
 
 		// Draw scene.
 		SDL_RenderClear(*renderer);
-		SDL_RenderCopy(*renderer, *cellTexture, NULL, NULL);
+		tileMap.render(*renderer, 50, 50, 3);
 		SDL_RenderPresent(*renderer);
 	}
 	return 0;
